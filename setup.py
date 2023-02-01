@@ -14,6 +14,7 @@ EXTRA_REQUIREMENTS = {
         "pylint",
         "pytest",
         "pytest-cov",
+        "tox",
     ],
 }
 
