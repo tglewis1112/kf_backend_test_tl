@@ -1,1 +1,4 @@
 /.idea/**
+/.coverage
+/*.egg-info/**
+**/__pycache__/**
