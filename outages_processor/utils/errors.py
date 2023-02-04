@@ -1,3 +1,8 @@
+"""
+Custom exception classes for use in the application
+"""
+
+
 class OutagesProcessorError(BaseException):
     """
     Base exception for all outages processor errors to inherit from

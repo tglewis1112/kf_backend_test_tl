@@ -10,14 +10,17 @@ For details covering setup of a new venv, please see [here](https://docs.python.
   * For development, install the package in editable mode and test/dev dependencies by running `pip install -e .[test]`
 
 ## Running the Tool
+* Complete installation as per above section.
 * A command line entry point is exposed by the package. Simply run `process_outages` from your terminal to launch the tool.
+  * Some command line options are available, to list these options run `process_outages --help`
 
 ## Configuration
-Environment variables can be used to override some of the settings in the application.
+Environment variables can be used to override some settings in the application.
 
-| Variable | Description                                           | Default                                  |
-|----------|-------------------------------------------------------|------------------------------------------|
-| API_KEY  | API key to use for authorisation with the outages API | EltgJ5G8m44IzwE6UN2Y4B4NjPW77Zk6FJK3lL23 |
+| Variable | Description                                                | Default                                  |
+|----------|------------------------------------------------------------|------------------------------------------|
+| API_KEY  | API key to use for authorisation with the outages API      | EltgJ5G8m44IzwE6UN2Y4B4NjPW77Zk6FJK3lL23 |
+| OP_DEBUG | Set to True to enable debug logging across the application | False                                    |
 
 
 ## Development Tools

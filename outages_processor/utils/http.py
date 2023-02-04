@@ -1,8 +1,15 @@
+"""
+Helpers for communicating with the outages API
+"""
 import requests
 from requests.adapters import HTTPAdapter, Retry
 
-from outages_processor.constants import API_BASE_URL, API_KEY
+from outages_processor.constants import API_BASE_URL, API_KEY, HTTP_TIMEOUT_SECONDS
 from outages_processor.utils.errors import APIError
+from outages_processor.utils.logging import get_logger
+
+
+logger = get_logger(__name__)
 
 
 def create_session(retries: int = 3, backoff_factor: float = 1.0) -> requests.Session:
@@ -17,6 +24,7 @@ def create_session(retries: int = 3, backoff_factor: float = 1.0) -> requests.Se
     :rtype: requests.Session
     """
     session = requests.Session()
+    logger.debug("Creating session with retries: %s and backoff factor: %s", retries, backoff_factor)
     retries = Retry(
         total=retries,
         backoff_factor=backoff_factor,
@@ -61,7 +69,11 @@ def api_request(verb: str, route: str, json: dict = None) -> requests.Response:
         })
 
     try:
-        response = session.request(**request_args)
+        logger.debug("About to make HTTP request. Method: %s, URL: %s", verb, url)
+        response = session.request(**request_args, timeout=HTTP_TIMEOUT_SECONDS)
+        logger.debug("Response code: %s", response.status_code)
+        response.raise_for_status()
     except requests.RequestException as exc:
+        logger.debug("Caught request exception: %s", exc)
         raise APIError("Failed to communicate with the outages API") from exc
     return response

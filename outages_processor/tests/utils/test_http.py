@@ -1,3 +1,6 @@
+"""
+Tests for utils.api
+"""
 import json
 import os
 import unittest.mock
@@ -5,8 +8,8 @@ import unittest.mock
 import httpretty
 import requests
 
-import outages_processor.utils.api
-from outages_processor.constants import API_BASE_URL, API_KEY
+import outages_processor.utils.http
+from outages_processor.constants import API_BASE_URL, API_KEY, HTTP_TIMEOUT_SECONDS
 from outages_processor.utils.errors import APIError
 
 
@@ -23,7 +26,7 @@ class TestCreateSession(unittest.TestCase):
         THEN
         I should receive an instance of a requests session object
         """
-        session = outages_processor.utils.api.create_session()
+        session = outages_processor.utils.http.create_session()
         self.assertIsInstance(session, requests.Session)
 
     def test_returns_correct_retries_defaults(self):
@@ -35,7 +38,7 @@ class TestCreateSession(unittest.TestCase):
         THEN
         I should receive a session with three retries embedded
         """
-        session = outages_processor.utils.api.create_session()
+        session = outages_processor.utils.http.create_session()
         self.assertEqual(3, session.adapters.get("http://").max_retries.total)
 
     def test_returns_valid_session_four_retries(self):
@@ -47,7 +50,7 @@ class TestCreateSession(unittest.TestCase):
         THEN
         I should receive a session with four retries embedded
         """
-        session = outages_processor.utils.api.create_session(retries=4)
+        session = outages_processor.utils.http.create_session(retries=4)
         self.assertEqual(4, session.adapters.get("http://").max_retries.total)
 
 
@@ -59,7 +62,7 @@ class TestAPIRequest(unittest.TestCase):
         """
         Common setup, shared across the suite
         """
-        with open(os.path.join(os.path.dirname(__file__), "outages_get.json"), "r") as file_handle:
+        with open(os.path.join(os.path.dirname(__file__), "outages_get.json"), "r", encoding="utf-8") as file_handle:
             self.outages_get_body = file_handle.read()
 
         self.standard_headers = {
@@ -76,17 +79,17 @@ class TestAPIRequest(unittest.TestCase):
         The arguments should indicate a GET method to the base URL concatenated with /outages
         """
         mock_create_session = unittest.mock.MagicMock()
-        with unittest.mock.patch("outages_processor.utils.api.create_session", return_value=mock_create_session):
-            outages_processor.utils.api.api_request("GET", "/outages")
+        with unittest.mock.patch("outages_processor.utils.http.create_session", return_value=mock_create_session):
+            outages_processor.utils.http.api_request("GET", "/outages")
 
         mock_create_session.request.assert_called_once_with(
             method="GET",
             url=f"{API_BASE_URL}/outages",
-            headers=self.standard_headers
+            headers=self.standard_headers,
+            timeout=HTTP_TIMEOUT_SECONDS,
         )
 
-    @unittest.mock.patch("outages_processor.utils.api.create_session")
-    def test_api_request_get_correct_requests_call_with_no_leading_slash(self, mock_create_session):
+    def test_api_request_get_correct_requests_call_with_no_leading_slash(self):
         """
         GIVEN
         I call the function with a GET request to outages (no leading /)
@@ -96,16 +99,16 @@ class TestAPIRequest(unittest.TestCase):
         The arguments should indicate a GET method to the base URL concatenated with /outages
         """
         mock_create_session = unittest.mock.MagicMock()
-        with unittest.mock.patch("outages_processor.utils.api.create_session", return_value=mock_create_session):
-            outages_processor.utils.api.api_request("GET", "outages")
+        with unittest.mock.patch("outages_processor.utils.http.create_session", return_value=mock_create_session):
+            outages_processor.utils.http.api_request("GET", "outages")
         mock_create_session.request.assert_called_once_with(
             method="GET",
             url=f"{API_BASE_URL}/outages",
-            headers=self.standard_headers
+            headers=self.standard_headers,
+            timeout=HTTP_TIMEOUT_SECONDS,
         )
 
-    @unittest.mock.patch("outages_processor.utils.api.create_session")
-    def test_api_request_post_correct_requests_call_no_data(self, mock_create_session):
+    def test_api_request_post_correct_requests_call_no_data(self):
         """
         GIVEN
         I call the function with a POST request with no data to /site-outages/norwich-pear-tree
@@ -115,17 +118,17 @@ class TestAPIRequest(unittest.TestCase):
         The arguments should indicate a POST method to the base URL concatenated with /site-outages/norwich-pear-tree
         """
         mock_create_session = unittest.mock.MagicMock()
-        with unittest.mock.patch("outages_processor.utils.api.create_session", return_value=mock_create_session):
-            outages_processor.utils.api.api_request("POST", "/site-outages/norwich-pear-tree")
+        with unittest.mock.patch("outages_processor.utils.http.create_session", return_value=mock_create_session):
+            outages_processor.utils.http.api_request("POST", "/site-outages/norwich-pear-tree")
 
         mock_create_session.request.assert_called_once_with(
             method="POST",
             url=f"{API_BASE_URL}/site-outages/norwich-pear-tree",
-            headers=self.standard_headers
+            headers=self.standard_headers,
+            timeout=HTTP_TIMEOUT_SECONDS,
         )
 
-    @unittest.mock.patch("outages_processor.utils.api.create_session")
-    def test_api_request_post_correct_requests_call_with_data(self, mock_create_session):
+    def test_api_request_post_correct_requests_call_with_data(self):
         """
         GIVEN
         I call the function with a POST request with JSON data to /site-outages/norwich-pear-tree
@@ -139,8 +142,8 @@ class TestAPIRequest(unittest.TestCase):
             "some_key": "some_value",
         }
         mock_create_session = unittest.mock.MagicMock()
-        with unittest.mock.patch("outages_processor.utils.api.create_session", return_value=mock_create_session):
-            outages_processor.utils.api.api_request("POST",
+        with unittest.mock.patch("outages_processor.utils.http.create_session", return_value=mock_create_session):
+            outages_processor.utils.http.api_request("POST",
                                                     "/site-outages/norwich-pear-tree",
                                                     json=json_data)
 
@@ -149,6 +152,7 @@ class TestAPIRequest(unittest.TestCase):
             url=f"{API_BASE_URL}/site-outages/norwich-pear-tree",
             headers=self.standard_headers,
             json=json_data,
+            timeout=HTTP_TIMEOUT_SECONDS,
         )
 
     @httpretty.activate
@@ -167,7 +171,7 @@ class TestAPIRequest(unittest.TestCase):
             f"{API_BASE_URL}/outages",
             body=self.outages_get_body,
         )
-        response = outages_processor.utils.api.api_request("GET", "/outages")
+        response = outages_processor.utils.http.api_request("GET", "/outages")
         self.assertEqual(200, response.status_code)
         self.assertEqual(json.loads(self.outages_get_body), response.json())
 
@@ -187,7 +191,7 @@ class TestAPIRequest(unittest.TestCase):
             f"{API_BASE_URL}/site-outages/norwich-pear-tree",
             status=200,
         )
-        response = outages_processor.utils.api.api_request("POST", "/site-outages/norwich-pear-tree")
+        response = outages_processor.utils.http.api_request("POST", "/site-outages/norwich-pear-tree")
         self.assertEqual(200, response.status_code)
 
     @httpretty.activate
@@ -211,7 +215,7 @@ class TestAPIRequest(unittest.TestCase):
                 httpretty.Response(status=200, body=self.outages_get_body),
             ],
         )
-        response = outages_processor.utils.api.api_request("GET", "/outages")
+        response = outages_processor.utils.http.api_request("GET", "/outages")
         self.assertEqual(200, response.status_code)
         self.assertEqual(json.loads(self.outages_get_body), response.json())
 
@@ -225,7 +229,6 @@ class TestAPIRequest(unittest.TestCase):
         The server responds three times with a 500 error
         THEN
         The retries are exceeded and an APIError should be raised
-        :return:
         """
         httpretty.register_uri(
             httpretty.GET,
@@ -234,4 +237,24 @@ class TestAPIRequest(unittest.TestCase):
             body="",
         )
         with self.assertRaises(APIError):
-            outages_processor.utils.api.api_request("GET", "/outages")
+            outages_processor.utils.http.api_request("GET", "/outages")
+
+    @httpretty.activate
+    def test_api_request_with_non_retry_code_400(self):
+        """
+        GIVEN
+        I call the function with a GET request to /outages
+        WHEN
+        The server responds once with a 400 error
+        THEN
+        No retries are attempted and an APIError should be raised
+        :return:
+        """
+        httpretty.register_uri(
+            httpretty.GET,
+            f"{API_BASE_URL}/outages",
+            status=400,
+            body="",
+        )
+        with self.assertRaises(APIError):
+            outages_processor.utils.http.api_request("GET", "/outages")
