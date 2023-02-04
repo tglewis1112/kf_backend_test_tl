@@ -2,7 +2,6 @@
 Tests for utils.api
 """
 import json
-import os
 import unittest.mock
 
 import httpretty
@@ -17,6 +16,7 @@ class TestCreateSession(unittest.TestCase):
     """
     Test suite for the create_session function
     """
+
     def test_returns_valid_session(self):
         """
         GIVEN
@@ -58,12 +58,18 @@ class TestAPIRequest(unittest.TestCase):
     """
     Test suite for the api_request function.
     """
+
     def setUp(self):
         """
         Common setup, shared across the suite
         """
-        with open(os.path.join(os.path.dirname(__file__), "outages_get.json"), "r", encoding="utf-8") as file_handle:
-            self.outages_get_body = file_handle.read()
+        self.outages_get_body = [
+            {
+                "id": "002b28fc-283c-47ec-9af2-ea287336dc1b",
+                "begin": "2021-07-26T17:09:31.036Z",
+                "end": "2021-08-29T00:37:42.253Z",
+            },
+        ]
 
         self.standard_headers = {
             "x-api-key": API_KEY,
@@ -144,8 +150,8 @@ class TestAPIRequest(unittest.TestCase):
         mock_create_session = unittest.mock.MagicMock()
         with unittest.mock.patch("outages_processor.utils.http.create_session", return_value=mock_create_session):
             outages_processor.utils.http.api_request("POST",
-                                                    "/site-outages/norwich-pear-tree",
-                                                    json=json_data)
+                                                     "/site-outages/norwich-pear-tree",
+                                                     json=json_data)
 
         mock_create_session.request.assert_called_once_with(
             method="POST",
@@ -169,11 +175,11 @@ class TestAPIRequest(unittest.TestCase):
         httpretty.register_uri(
             httpretty.GET,
             f"{API_BASE_URL}/outages",
-            body=self.outages_get_body,
+            body=json.dumps(self.outages_get_body),
         )
         response = outages_processor.utils.http.api_request("GET", "/outages")
         self.assertEqual(200, response.status_code)
-        self.assertEqual(json.loads(self.outages_get_body), response.json())
+        self.assertEqual(self.outages_get_body, response.json())
 
     @httpretty.activate
     def test_api_request_post(self):
@@ -212,12 +218,12 @@ class TestAPIRequest(unittest.TestCase):
             responses=[
                 httpretty.Response(status=500, body=""),
                 httpretty.Response(status=500, body=""),
-                httpretty.Response(status=200, body=self.outages_get_body),
+                httpretty.Response(status=200, body=json.dumps(self.outages_get_body)),
             ],
         )
         response = outages_processor.utils.http.api_request("GET", "/outages")
         self.assertEqual(200, response.status_code)
-        self.assertEqual(json.loads(self.outages_get_body), response.json())
+        self.assertEqual(self.outages_get_body, response.json())
 
     @httpretty.activate
     @unittest.mock.patch("time.sleep")

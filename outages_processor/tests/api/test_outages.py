@@ -107,6 +107,9 @@ class TestGetOutagesFilteredDatetime(unittest.TestCase):
 
 
 class TestAddDeviceInfoToOutages(unittest.TestCase):
+    """
+    Test suite for the add_device_info_to_outages function
+    """
     def test_device_association_with_valid_outage_id(self):
         """
         GIVEN
