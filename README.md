@@ -12,6 +12,14 @@ For details covering setup of a new venv, please see [here](https://docs.python.
 ## Running the Tool
 * A command line entry point is exposed by the package. Simply run `process_outages` from your terminal to launch the tool.
 
+## Configuration
+Environment variables can be used to override some of the settings in the application.
+
+| Variable | Description                                           | Default                                  |
+|----------|-------------------------------------------------------|------------------------------------------|
+| API_KEY  | API key to use for authorisation with the outages API | EltgJ5G8m44IzwE6UN2Y4B4NjPW77Zk6FJK3lL23 |
+
+
 ## Development Tools
 * Run the unit tests for development with `pytest`, coverage is enabled by default and will output a HTML report to the "htmlcov" directory
 * Run pylint with `pylint outages_processor`

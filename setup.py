@@ -11,6 +11,7 @@ REQUIREMENTS = [
 
 EXTRA_REQUIREMENTS = {
     "test": [
+        "httpretty",
         "pylint",
         "pytest",
         "pytest-cov",
