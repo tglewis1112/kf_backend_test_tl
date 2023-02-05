@@ -3,6 +3,8 @@ Outages interfaces for API communication
 """
 import datetime
 
+import iso8601
+
 import outages_processor.utils
 
 
@@ -10,7 +12,7 @@ logger = outages_processor.utils.get_logger(__name__)
 
 
 def get_outages_after_datetime(
-        datetime_earliest: datetime.datetime = datetime.datetime.fromisoformat("2022-01-01T00:00:00.000Z")
+        datetime_earliest: datetime.datetime = iso8601.parse_date("2022-01-01T00:00:00.000Z")
 ) -> list:
     """
     Gets a list of outages filtered by time window.
@@ -22,7 +24,7 @@ def get_outages_after_datetime(
     :raises APIError: In the event of an issue connecting to the API or an unexpected HTTP response
     """
     all_outages = outages_processor.utils.api_request("GET", "/outages").json()
-    return [item for item in all_outages if datetime.datetime.fromisoformat(item.get("begin")) >= datetime_earliest]
+    return [item for item in all_outages if iso8601.parse_date(item.get("begin")) >= datetime_earliest]
 
 
 def add_device_info_to_outages(outages: list[dict], site_devices_map: dict) -> list:

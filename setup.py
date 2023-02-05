@@ -6,6 +6,7 @@ from setuptools import find_packages, setup
 from outages_processor.constants import VERSION
 
 REQUIREMENTS = [
+    "iso8601",
     "requests",
 ]
 
