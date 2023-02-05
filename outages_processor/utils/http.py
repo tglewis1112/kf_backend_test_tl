@@ -75,5 +75,5 @@ def api_request(verb: str, route: str, json: dict = None) -> requests.Response:
         response.raise_for_status()
     except requests.RequestException as exc:
         logger.debug("Caught request exception: %s", exc)
-        raise APIError("Failed to communicate with the outages API") from exc
+        raise APIError("Failed to communicate with the API") from exc
     return response

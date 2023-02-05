@@ -19,6 +19,7 @@ def get_outages_after_datetime(
     will be filtered out.
     :return: A list of outages from the HTTP response body
     :rtype: list
+    :raises APIError: In the event of an issue connecting to the API or an unexpected HTTP response
     """
     all_outages = outages_processor.utils.api_request("GET", "/outages").json()
     return [item for item in all_outages if datetime.datetime.fromisoformat(item.get("begin")) >= datetime_earliest]

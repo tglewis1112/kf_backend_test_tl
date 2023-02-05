@@ -22,6 +22,7 @@ def get_site_info(site_name: str, devices_map: bool = True) -> dict:
     :type devices_map: bool
     :return: The JSON body if devices_map is False, a dictionary as per above if devices_map is True
     :rtype: dict
+    :raises APIError: In the event of an issue connecting to the API or an unexpected HTTP response
     """
     response = outages_processor.utils.api_request("GET", f"/site-info/{site_name}").json()
     if devices_map:
@@ -38,6 +39,7 @@ def upload_site_outages(site_name: str, outages_with_devices: list[dict]) -> boo
     :param outages_with_devices: A list of dicts, each containing a blob of enhanced outage data
     :return: True if the request completed successfully, False otherwise
     :rtype: bool
+    :raises APIError: In the event of an issue connecting to the API or an unexpected HTTP response
     """
     response = outages_processor.utils.api_request("POST", f"/site-outages/{site_name}", json=outages_with_devices)
     return response.ok
